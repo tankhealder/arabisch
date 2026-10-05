@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B7A6F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Arabisch Verben</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-column phone app, sticky header, bottom tab bar; content cards only where they hold a task */
+:root{
+  --bg:#EEF3F2; --surface:#FFFFFF; --sunk:#E2EAE8; --fg:#13262B; --muted:#5A6E72; --line:#CBD8D5;
+  --accent:#0B7A6F; --accent-fg:#FFFFFF; --accent-soft:#D3ECE8;
+  --gold:#B07A12; --gold-soft:#F6E7C4;
+  --good:#1D7F3E; --good-soft:#DDF2E3; --bad:#B3261E; --bad-soft:#F9DEDB;
+  --f-display:"Fraunces",Georgia,serif; --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-ar:"Noto Naskh Arabic","Geeza Pro","Arial",serif;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1A1C; --surface:#172527; --sunk:#0B1416; --fg:#E4EEEC; --muted:#93A8A6; --line:#2A3C3E;
+  --accent:#3CC2B2; --accent-fg:#06221F; --accent-soft:#16393A;
+  --gold:#E2B24F; --gold-soft:#3A2E14;
+  --good:#5FD38A; --good-soft:#163524; --bad:#FF8A80; --bad-soft:#3E1C1A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1A1C; --surface:#172527; --sunk:#0B1416; --fg:#E4EEEC; --muted:#93A8A6; --line:#2A3C3E;
+  --accent:#3CC2B2; --accent-fg:#06221F; --accent-soft:#16393A;
+  --gold:#E2B24F; --gold-soft:#3A2E14;
+  --good:#5FD38A; --good-soft:#163524; --bad:#FF8A80; --bad-soft:#3E1C1A; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.ar{font-family:var(--f-ar);direction:rtl;unicode-bidi:isolate;line-height:1.7}
+.wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:0 110px}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;border-bottom:1px solid var(--line);margin-inline:-16px;padding-inline:16px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand h1{font-family:var(--f-display);font-size:1.45rem;margin:0;letter-spacing:-.01em}
+.brand h1 .ar{font-size:1.2rem;color:var(--accent);margin-inline-start:6px}
+.script-toggle{display:flex;background:var(--sunk);border-radius:999px;padding:3px;gap:2px;flex-shrink:0}
+.script-toggle button{border:0;background:none;padding:5px 10px;border-radius:999px;font-size:.8rem;font-weight:700;color:var(--muted)}
+.script-toggle button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+h2{font-family:var(--f-display);font-size:1.3rem;margin:22px 0 6px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 14px}
+.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:700;color:var(--muted)}
+
+/* verb chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-block:4px 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.chip small{font-size:.72rem;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.chip[aria-pressed="true"] small{color:inherit;opacity:.85}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:12px;padding:4px;gap:4px;margin-block:8px 12px}
+.seg button{border:0;background:none;padding:9px;border-radius:9px;font-weight:700;color:var(--muted);line-height:1.2}
+.seg button small{display:block;font-weight:400;font-size:.75rem}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* conjugation list */
+.conj{list-style:none;margin:0;padding:0;background:var(--surface);border-radius:var(--r);border:1px solid var(--line)}
+.conj li{display:grid;grid-template-columns:5.6rem 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+.conj li:first-child{border-top:0}
+.pron{line-height:1.25}
+.pron b{display:block;font-size:.95rem}
+.pron span{font-size:.78rem;color:var(--muted)}
+.form{min-width:0;line-height:1.3}
+.form .ar{font-size:1.55rem;display:block;text-align:start}
+.form .tr{font-size:1.02rem;font-weight:600;letter-spacing:.01em}
+.form .de{font-size:.8rem;color:var(--muted)}
+mark{background:var(--gold-soft);color:var(--gold);border-radius:4px;padding:0 2px;font-weight:800}
+.speak{border:0;background:var(--accent-soft);color:var(--accent);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+.speak svg{width:20px;height:20px}
+.hint{font-size:.85rem;color:var(--muted);margin-top:10px}
+
+/* rules */
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-block:10px}
+.rule h3{margin:0 0 4px;font-size:1.05rem}
+.rule p{margin:0 0 10px;color:var(--muted);font-size:.93rem}
+.affix{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.affix div{background:var(--sunk);border-radius:10px;padding:8px 10px;line-height:1.3}
+.affix b{font-size:1.15rem;color:var(--gold)}
+.affix .ar{font-size:1.2rem;color:var(--gold);margin-inline-start:6px}
+.affix span{display:block;font-size:.82rem;color:var(--muted)}
+.example{margin-top:10px;font-size:.95rem}
+
+/* quiz */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px}
+.progress{display:flex;align-items:center;gap:10px;margin-block:6px 12px}
+.bar{flex:1;height:8px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.progress span{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.q-prompt{font-size:1.25rem;font-weight:700;margin:4px 0 2px;text-wrap:balance}
+.q-prompt .ar{font-size:2rem;font-weight:600}
+.q-sub{color:var(--muted);font-size:.9rem;margin:0 0 14px}
+.opts{display:grid;gap:8px}
+.opt{border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:12px 14px;text-align:start;line-height:1.3;min-height:52px}
+.opt .ar{font-size:1.45rem;display:block}
+.opt .tr{font-weight:600}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.feedback{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:.93rem}
+.feedback.ok{background:var(--good-soft);color:var(--good)}
+.feedback.no{background:var(--bad-soft);color:var(--bad)}
+.feedback .why{display:block;color:var(--fg);margin-top:4px}
+.btn{border:0;background:var(--accent);color:var(--accent-fg);font-weight:700;border-radius:12px;padding:13px 18px;width:100%;margin-top:14px;font-size:1rem}
+.btn.ghost{background:var(--sunk);color:var(--fg)}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1}
+.mode-pick{display:grid;gap:10px}
+.mode{border:1.5px solid var(--line);background:var(--surface);border-radius:var(--r);padding:14px;text-align:start;display:flex;gap:12px;align-items:center}
+.mode .num{font-family:var(--f-display);font-size:1.3rem;color:var(--accent);width:2rem;text-align:center;flex-shrink:0}
+.mode b{display:block}
+.mode span{font-size:.87rem;color:var(--muted)}
+.result{text-align:center;padding-block:10px}
+.result .big{font-family:var(--f-display);font-size:3rem;color:var(--accent);line-height:1}
+.best{font-size:.85rem;color:var(--muted);margin-top:8px}
+
+/* gap */
+.sentence{font-size:1.15rem;line-height:1.6;margin:6px 0}
+.sentence .ar{font-size:1.6rem;display:block;text-align:right}
+.gap{display:inline-block;min-width:5.5em;border-bottom:2px dashed var(--gold);color:var(--gold);font-weight:700;text-align:center}
+.typebox{display:flex;gap:8px;margin-top:10px}
+.typebox input{flex:1;min-width:0;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px;font:inherit}
+.typebox button{border:0;background:var(--accent);color:var(--accent-fg);border-radius:12px;padding:0 16px;font-weight:700}
+.linkish{background:none;border:0;color:var(--accent);font-weight:700;padding:8px 0;font-size:.9rem;text-decoration:underline;text-underline-offset:3px}
+
+/* tabbar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{border:0;background:none;padding:9px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.74rem;font-weight:700;color:var(--muted)}
+nav.tabs svg{width:24px;height:24px}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:.88rem;z-index:20;max-width:90vw}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Verben <span class="ar">الأفعال</span></h1>
+      <div class="script-toggle" role="group" aria-label="Schrift">
+        <button id="sc-both" data-script="both">Beides</button>
+        <button id="sc-ar" data-script="ar">عربي</button>
+        <button id="sc-tr" data-script="tr">Abc</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- LERNEN -->
+  <section id="v-learn">
+    <h2>Konjugationstabelle</h2>
+    <p class="lead">Wähle ein Verb. Die gelb markierten Teile zeigen, woran man die Person erkennt.</p>
+    <div class="chips" id="verbChips" role="group" aria-label="Verb"></div>
+    <div class="seg" role="group" aria-label="Zeit">
+      <button id="t-pres" data-tense="pres">Präsens<small>Muḍāriʿ · المضارع</small></button>
+      <button id="t-perf" data-tense="perf">Perfekt<small>Māḍī · الماضي</small></button>
+    </div>
+    <ul class="conj" id="conjList"></ul>
+    <p class="hint" id="ttsHint" hidden>Tippe auf den Lautsprecher, um das Wort zu hören.</p>
+  </section>
+
+  <!-- REGELN -->
+  <section id="v-rules" hidden>
+    <h2>Merkhilfe auf einen Blick</h2>
+    <p class="lead">Nur Singular und „wir“. Zwei Regeln reichen für alle fünf Verben.</p>
+    <div class="rule">
+      <h3>Präsens: die Vorsilbe zeigt die Person</h3>
+      <p>Vorne am Verb steht ein Präfix. Bei „du“ (weiblich) kommt zusätzlich die Endung <b>-īna</b> dazu.</p>
+      <div class="affix">
+        <div><b>a-</b><span class="ar">أَ</span><span>ich</span></div>
+        <div><b>ta-</b><span class="ar">تَ</span><span>du (m.) · sie (sg.)</span></div>
+        <div><b>ta- … -īna</b><span>du (f.)</span></div>
+        <div><b>ya-</b><span class="ar">يَ</span><span>er</span></div>
+        <div><b>na-</b><span class="ar">نَ</span><span>wir</span></div>
+      </div>
+      <div class="example" id="exPres"></div>
+    </div>
+    <div class="rule">
+      <h3>Perfekt: die Endung zeigt die Person</h3>
+      <p>Hinten am Verb steht ein Suffix. „Er“ ist die reine Grundform ohne Endung.</p>
+      <div class="affix">
+        <div><b>-tu</b><span class="ar">ـْتُ</span><span>ich</span></div>
+        <div><b>-ta</b><span class="ar">ـْتَ</span><span>du (m.)</span></div>
+        <div><b>-ti</b><span class="ar">ـْتِ</span><span>du (f.)</span></div>
+        <div><b>-a</b><span>er (Grundform)</span></div>
+        <div><b>-at</b><span class="ar">ـَتْ</span><span>sie (sg.)</span></div>
+        <div><b>-nā</b><span class="ar">ـْنَا</span><span>wir</span></div>
+      </div>
+      <div class="example" id="exPerf"></div>
+    </div>
+    <div class="rule">
+      <h3>Achtung: zweimal „ta-“</h3>
+      <p>Im Präsens sehen „du (m.)“ und „sie (sg.)“ gleich aus: <b>taskunu</b> heißt „du wohnst“ oder „sie wohnt“. Das Pronomen davor (anta / hiya) macht den Unterschied.</p>
+    </div>
+  </section>
+
+  <!-- ÜBEN -->
+  <section id="v-quiz" hidden>
+    <h2>Üben</h2>
+    <div id="quizRoot"></div>
+  </section>
+
+  <!-- LÜCKEN -->
+  <section id="v-gap" hidden>
+    <h2>Lückentext</h2>
+    <p class="lead">Die fünf Sätze vom Übungsblatt. Setze die richtige Form ein.</p>
+    <div id="gapRoot"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Bereiche">
+  <div class="in">
+    <button id="tab-learn" data-view="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>Tabelle</button>
+    <button id="tab-rules" data-view="rules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>Merkhilfe</button>
+    <button id="tab-quiz" data-view="quiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>Üben</button>
+    <button id="tab-gap" data-view="gap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h4M16 7h4M4 12h16M4 17h7"/><path d="M9 9.5h6" stroke-dasharray="2 2"/></svg>Lücken</button>
+  </div>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const PRON = [
+  {de:"ich",      tr:"anā",  ar:"أَنَا", lab:"Ich"},
+  {de:"du (m.)",  tr:"anta", ar:"أَنْتَ", lab:"Du m."},
+  {de:"du (f.)",  tr:"anti", ar:"أَنْتِ", lab:"Du f."},
+  {de:"er",       tr:"huwa", ar:"هُوَ",  lab:"Er"},
+  {de:"sie (sg.)",tr:"hiya", ar:"هِيَ",  lab:"Sie sg."},
+  {de:"wir",      tr:"naḥnu",ar:"نَحْنُ", lab:"Wir"}
+];
+const PRE = ["a","ta","ta","ya","ta","na"];
+const PRE_END = ["u","u","īna","u","u","u"];
+const SUF = ["tu","ta","ti","a","at","nā"];
+
+const VERBS = [
+  {id:"sakana", de:"wohnen", tr:"sakana", ar:"سَكَنَ", pStem:"skun", fStem:"sakan",
+   deP:["wohne","wohnst","wohnst","wohnt","wohnt","wohnen"], deF:["wohnte","wohntest","wohntest","wohnte","wohnte","wohnten"],
+   arP:["أَسْكُنُ","تَسْكُنُ","تَسْكُنِينَ","يَسْكُنُ","تَسْكُنُ","نَسْكُنُ"],
+   arF:["سَكَنْتُ","سَكَنْتَ","سَكَنْتِ","سَكَنَ","سَكَنَتْ","سَكَنَّا"]},
+  {id:"takallama", de:"sprechen", tr:"takallama", ar:"تَكَلَّمَ", pStem:"takallam", fStem:"takallam",
+   deP:["spreche","sprichst","sprichst","spricht","spricht","sprechen"], deF:["sprach","sprachst","sprachst","sprach","sprach","sprachen"],
+   arP:["أَتَكَلَّمُ","تَتَكَلَّمُ","تَتَكَلَّمِينَ","يَتَكَلَّمُ","تَتَكَلَّمُ","نَتَكَلَّمُ"],
+   arF:["تَكَلَّمْتُ","تَكَلَّمْتَ","تَكَلَّمْتِ","تَكَلَّمَ","تَكَلَّمَتْ","تَكَلَّمْنَا"]},
+  {id:"qaraa", de:"lesen", tr:"qara'a", ar:"قَرَأَ", pStem:"qra'", fStem:"qara'",
+   deP:["lese","liest","liest","liest","liest","lesen"], deF:["las","last","last","las","las","lasen"],
+   arP:["أَقْرَأُ","تَقْرَأُ","تَقْرَئِينَ","يَقْرَأُ","تَقْرَأُ","نَقْرَأُ"],
+   arF:["قَرَأْتُ","قَرَأْتَ","قَرَأْتِ","قَرَأَ","قَرَأَتْ","قَرَأْنَا"]},
+  {id:"shariba", de:"trinken", tr:"shariba", ar:"شَرِبَ", pStem:"shrab", fStem:"sharib",
+   deP:["trinke","trinkst","trinkst","trinkt","trinkt","trinken"], deF:["trank","trankst","trankst","trank","trank","tranken"],
+   arP:["أَشْرَبُ","تَشْرَبُ","تَشْرَبِينَ","يَشْرَبُ","تَشْرَبُ","نَشْرَبُ"],
+   arF:["شَرِبْتُ","شَرِبْتَ","شَرِبْتِ","شَرِبَ","شَرِبَتْ","شَرِبْنَا"]},
+  {id:"dhahaba", de:"gehen", tr:"dhahaba", ar:"ذَهَبَ", pStem:"dhhab", fStem:"dhahab",
+   deP:["gehe","gehst","gehst","geht","geht","gehen"], deF:["ging","gingst","gingst","ging","ging","gingen"],
+   arP:["أَذْهَبُ","تَذْهَبُ","تَذْهَبِينَ","يَذْهَبُ","تَذْهَبُ","نَذْهَبُ"],
+   arF:["ذَهَبْتُ","ذَهَبْتَ","ذَهَبْتِ","ذَهَبَ","ذَهَبَتْ","ذَهَبْنَا"]}
+];
+
+// One form = {tr, html (translit with marked affix), ar, de}
+function form(v, tense, p){
+  if(tense==="pres"){
+    const end = PRE_END[p], tr = PRE[p]+v.pStem+end;
+    const html = `<mark>${PRE[p]}</mark>${v.pStem}${end==="īna"?`<mark>īna</mark>`:end}`;
+    return {tr, html, ar:v.arP[p], de:`${PRON[p].de} ${v.deP[p]}`};
+  }
+  const tr = v.fStem+SUF[p];
+  const html = p===3 ? `${v.fStem}a` : `${v.fStem}<mark>${SUF[p]}</mark>`;
+  return {tr, html, ar:v.arF[p], de:`${PRON[p].de} ${v.deF[p]}`};
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- storage (per device convenience) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("arv:"+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("arv:"+k, JSON.stringify(v)); }catch(e){} }
+};
+const state = {
+  view: store.get("view","learn"), verb: store.get("verb",0), tense: store.get("tense","pres"),
+  script: store.get("script","both")
+};
+
+/* ---------- speech ---------- */
+let arVoice = null;
+const canSpeak = "speechSynthesis" in window;
+function pickVoice(){
+  if(!canSpeak) return;
+  const vs = speechSynthesis.getVoices();
+  arVoice = vs.find(v => /^ar[-_]SA/i.test(v.lang)) || vs.find(v => /^ar/i.test(v.lang)) || null;
+}
+if(canSpeak){ pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); renderLearn(); }; }
+function speak(text){
+  if(!canSpeak) return toast("Dein Browser kann leider nicht vorlesen.");
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = arVoice ? arVoice.lang : "ar-SA"; if(arVoice) u.voice = arVoice; u.rate = .8;
+    speechSynthesis.speak(u);
+    if(!arVoice) setTimeout(()=>{ if(!speechSynthesis.speaking) toast("Keine arabische Stimme gefunden. In den Android-Einstellungen unter „Sprachausgabe“ Arabisch installieren."); }, 900);
+  }catch(e){ toast("Vorlesen hat nicht geklappt."); }
+}
+const SPEAK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>`;
+
+let toastT;
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden = true, 3500); }
+
+/* ---------- rendering helpers ---------- */
+function showForm(f, opts={}){
+  const s = state.script, parts = [];
+  if(s!=="tr") parts.push(`<span class="ar">${f.ar}</span>`);
+  if(s!=="ar") parts.push(`<span class="tr">${opts.plain ? esc(f.tr) : f.html}</span>`);
+  return parts.join("");
+}
+
+/* ---------- LERNEN ---------- */
+function renderLearn(){
+  document.getElementById("verbChips").innerHTML = VERBS.map((v,i)=>
+    `<button class="chip" id="verb-${v.id}" data-verb="${i}" aria-pressed="${i===state.verb}">${v.de}<small>${v.tr} · <span class="ar">${v.ar}</span></small></button>`).join("");
+  document.querySelectorAll("[data-tense]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tense===state.tense));
+  const v = VERBS[state.verb];
+  document.getElementById("conjList").innerHTML = PRON.map((p,i)=>{
+    const f = form(v, state.tense, i);
+    return `<li><div class="pron"><b>${p.tr}</b><span>${p.de}</span></div>
+      <div class="form">${showForm(f)}<div class="de">${f.de}</div></div>
+      <button class="speak" data-say="${p.ar} ${f.ar}" aria-label="${p.tr} ${f.tr} anhören">${SPEAK_SVG}</button></li>`;
+  }).join("");
+  document.getElementById("ttsHint").hidden = !canSpeak;
+}
+document.getElementById("verbChips").addEventListener("click", e=>{
+  const b = e.target.closest("[data-verb]"); if(!b) return;
+  state.verb = +b.dataset.verb; store.set("verb", state.verb); renderLearn();
+});
+document.querySelectorAll("[data-tense]").forEach(b => b.addEventListener("click", ()=>{
+  state.tense = b.dataset.tense; store.set("tense", state.tense); renderLearn();
+}));
+document.addEventListener("click", e=>{ const b = e.target.closest("[data-say]"); if(b) speak(b.dataset.say); });
+
+/* ---------- REGELN ---------- */
+function renderRules(){
+  const v = VERBS[3];
+  const ex = t => PRON.map((p,i)=>{ const f = form(v,t,i); return `${p.tr} ${state.script==="ar" ? `<span class="ar">${f.ar}</span>` : f.html}`; }).join(" · ");
+  document.getElementById("exPres").innerHTML = `<span class="eyebrow">Beispiel trinken</span><br>${ex("pres")}`;
+  document.getElementById("exPerf").innerHTML = `<span class="eyebrow">Beispiel trinken</span><br>${ex("perf")}`;
+}
+
+/* ---------- QUIZ ---------- */
+const rnd = n => Math.floor(Math.random()*n);
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = rnd(i+1); [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const TENSE_DE = {pres:"Präsens", perf:"Perfekt"};
+
+function explain(tense, p){
+  if(tense==="pres") return p===2 ? "Präsens, du (f.): Vorsilbe ta- und Endung -īna." : `Präsens, ${PRON[p].de}: Vorsilbe ${PRE[p]}-.`;
+  return p===3 ? "Perfekt, er: reine Grundform." : `Perfekt, ${PRON[p].de}: Endung -${SUF[p]}.`;
+}
+// distractors: same verb, other person or other tense; unique by translit
+function distractors(vi, tense, p, n=3){
+  const v = VERBS[vi], right = form(v,tense,p).tr, pool = [];
+  for(const t of ["pres","perf"]) for(let i=0;i<6;i++){ const f = form(v,t,i); if(f.tr!==right && !pool.some(x=>x.f.tr===f.tr)) pool.push({f,t,i}); }
+  const sameT = shuffle(pool.filter(x=>x.t===tense)), other = shuffle(pool.filter(x=>x.t!==tense));
+  return [...sameT.slice(0,2), ...other].slice(0,n);
+}
+
+const MODES = [
+  {id:"de2ar", title:"Deutsch → Arabisch", desc:"„wir tranken“ – welche Form ist richtig?"},
+  {id:"ar2de", title:"Arabisch → Deutsch", desc:"„sharibnā“ – was bedeutet das?"},
+  {id:"build", title:"Form bilden", desc:"Pronomen, Verb und Zeit sind gegeben."},
+];
+let quiz = null;
+
+function makeQuestion(mode){
+  const vi = rnd(5), tense = Math.random()<.5 ? "pres" : "perf", p = rnd(6), v = VERBS[vi], f = form(v,tense,p);
+  const ds = distractors(vi,tense,p);
+  if(mode==="ar2de"){
+    const opts = shuffle([{label:f.de, ok:true}, ...ds.map(d=>({label:d.f.de, ok:false}))]);
+    return {prompt: showForm(f,{plain:true}), sub:`Was bedeutet diese Form von <b>${v.de}</b>?`, opts, say:f.ar, why:explain(tense,p), answer:f.de};
+  }
+  const opts = shuffle([{f, ok:true}, ...ds.map(d=>({f:d.f, ok:false}))]).map(o=>({label:showForm(o.f,{plain:true}), ok:o.ok}));
+  const answer = `${f.tr} · <span class="ar">${f.ar}</span>`;
+  if(mode==="build") return {prompt:`${PRON[p].tr} <span class="ar">${PRON[p].ar}</span> + ${v.tr}`, sub:`${PRON[p].de} · ${v.de} · <b>${TENSE_DE[tense]}</b>`, opts, say:f.ar, why:explain(tense,p), answer};
+  return {prompt:f.de.charAt(0).toUpperCase()+f.de.slice(1), sub:`${v.de} · ${TENSE_DE[tense]}`, opts, say:f.ar, why:explain(tense,p), answer};
+}
+
+function renderQuiz(){
+  const root = document.getElementById("quizRoot");
+  if(!quiz){
+    const best = store.get("best",{});
+    root.innerHTML = `<p class="lead">10 Fragen pro Runde, gemischt aus allen fünf Verben und beiden Zeiten.</p>
+      <div class="mode-pick">${MODES.map((m,i)=>`<button class="mode" id="mode-${m.id}" data-mode="${m.id}"><span class="num">${i+1}</span><div><b>${m.title}</b><span>${m.desc}${best[m.id]!=null?` · Bestwert ${best[m.id]}/10`:""}</span></div></button>`).join("")}</div>`;
+    return;
+  }
+  if(quiz.i >= quiz.qs.length){
+    const best = store.get("best",{}), prev = best[quiz.mode] ?? -1;
+    if(quiz.score > prev){ best[quiz.mode] = quiz.score; store.set("best", best); }
+    const msg = quiz.score===10 ? "Perfekt! ممتاز" : quiz.score>=7 ? "Sehr gut! أحسنتِ" : "Weiter üben, das wird!";
+    root.innerHTML = `<div class="card result"><div class="eyebrow">Ergebnis</div><div class="big">${quiz.score}/10</div><p>${msg}</p>
+      ${quiz.score>prev && prev>=0 ? `<p class="best">Neuer Bestwert!</p>`:""}
+      <div class="btn-row"><button class="btn ghost" id="q-back" data-q="back">Andere Übung</button><button class="btn" id="q-again" data-q="again">Nochmal</button></div></div>`;
+    return;
+  }
+  const q = quiz.qs[quiz.i];
+  root.innerHTML = `<div class="progress"><div class="bar"><i style="width:${quiz.i*10}%"></i></div><span>${quiz.i+1}/10 · ${quiz.score} richtig</span></div>
+    <div class="card"><div class="q-prompt">${q.prompt}</div><p class="q-sub">${q.sub}</p>
+    <div class="opts">${q.opts.map((o,i)=>`<button class="opt" id="opt-${i}" data-opt="${i}">${o.label}</button>`).join("")}</div>
+    <div id="qFeedback"></div></div>`;
+}
+document.getElementById("quizRoot").addEventListener("click", e=>{
+  const m = e.target.closest("[data-mode]");
+  if(m){ quiz = {mode:m.dataset.mode, i:0, score:0, qs:Array.from({length:10},()=>makeQuestion(m.dataset.mode)), answered:false}; renderQuiz(); return; }
+  const qb = e.target.closest("[data-q]");
+  if(qb){
+    if(qb.dataset.q==="back") quiz = null;
+    else if(qb.dataset.q==="again") quiz = {mode:quiz.mode, i:0, score:0, qs:Array.from({length:10},()=>makeQuestion(quiz.mode)), answered:false};
+    else if(qb.dataset.q==="next"){ quiz.i++; quiz.answered = false; }
+    renderQuiz(); window.scrollTo({top:0}); return;
+  }
+  const o = e.target.closest("[data-opt]");
+  if(o && quiz && !quiz.answered){
+    quiz.answered = true;
+    const q = quiz.qs[quiz.i], ok = q.opts[+o.dataset.opt].ok;
+    if(ok) quiz.score++;
+    document.querySelectorAll("[data-opt]").forEach((b,i)=>{ b.disabled = true; if(q.opts[i].ok) b.classList.add("correct"); else if(b===o) b.classList.add("wrong"); });
+    document.getElementById("qFeedback").innerHTML = `<div class="feedback ${ok?"ok":"no"}"><b>${ok?"Richtig!":"Leider falsch."}</b>${ok?"":` Richtig ist: ${q.answer}`}<span class="why">${q.why}</span></div>
+      <div class="btn-row"><button class="btn ghost" id="q-say" data-say="${q.say}">Anhören</button><button class="btn" id="q-next" data-q="next">${quiz.i===9?"Ergebnis":"Weiter"}</button></div>`;
+  }
+});
+
+/* ---------- LÜCKEN ---------- */
+const GAPS = [
+  {de:"Ich wohne in Berlin.", tense:"pres", v:0, p:0, before:"Anā", after:"fī Barlīn.", arB:"أَنَا", arA:"فِي بَرْلِين."},
+  {de:"Er sprach mit dem Lehrer.", tense:"perf", v:1, p:3, before:"Huwa", after:"maʿa al-muʿallim.", arB:"هُوَ", arA:"مَعَ الْمُعَلِّمِ."},
+  {de:"Du (f.) liest ein Buch.", tense:"pres", v:2, p:2, before:"Anti", after:"kitāban.", arB:"أَنْتِ", arA:"كِتَابًا."},
+  {de:"Wir tranken kaltes Wasser.", tense:"perf", v:3, p:5, before:"Naḥnu", after:"māʾan bāridan.", arB:"نَحْنُ", arA:"مَاءً بَارِدًا."},
+  {de:"Sie (sg.) ging nach Hause.", tense:"perf", v:4, p:4, before:"Hiya", after:"ilā al-bayt.", arB:"هِيَ", arA:"إِلَى الْبَيْتِ."},
+];
+let gap = {i:0, score:0, answered:false, typing:false, opts:null};
+
+// lenient compare: case, macrons, dots, apostrophe styles, Arabic vowel marks
+function norm(s){
+  return s.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[ً-ْٰ]/g,"")
+    .toLowerCase().replace(/[ʿʾ’‘`´ʼ]/g,"'").replace(/[^a-z'؀-ۿ]/g,"").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ئ/g,"ي");
+}
+function gapOpts(g){
+  const f = form(VERBS[g.v], g.tense, g.p);
+  return shuffle([{f, ok:true}, ...distractors(g.v, g.tense, g.p).map(d=>({f:d.f, ok:false}))]);
+}
+function renderGap(){
+  const root = document.getElementById("gapRoot");
+  if(gap.i >= GAPS.length){
+    root.innerHTML = `<div class="card result"><div class="eyebrow">Geschafft</div><div class="big">${gap.score}/5</div><p>${gap.score===5?"Alles richtig! ممتاز":"Gut gemacht. Noch eine Runde?"}</p>
+      <button class="btn" id="g-restart" data-g="restart">Nochmal von vorn</button></div>`;
+    return;
+  }
+  const g = GAPS[gap.i], v = VERBS[g.v];
+  if(!gap.opts) gap.opts = gapOpts(g);
+  root.innerHTML = `<div class="progress"><div class="bar"><i style="width:${gap.i*20}%"></i></div><span>Satz ${gap.i+1}/5</span></div>
+    <div class="card">
+      <div class="eyebrow">${g.de} · ${TENSE_DE[g.tense]}</div>
+      <div class="sentence">${state.script!=="tr" ? `<span class="ar">${g.arB} <span class="gap" id="gapAr">…</span> ${g.arA}</span>`:""}
+        ${state.script!=="ar" ? `${g.before} <span class="gap" id="gapTr">______</span> ${g.after}`:""}</div>
+      <p class="q-sub">Verb: <b>${v.de}</b> (${v.tr} · <span class="ar">${v.ar}</span>)</p>
+      ${gap.typing
+        ? `<form class="typebox" id="gapForm"><input id="gapInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="z. B. askunu" aria-label="Antwort"><button type="submit">Prüfen</button></form>
+           <button class="linkish" id="g-choice" data-g="choice">Lieber auswählen</button>`
+        : `<div class="opts">${gap.opts.map((o,i)=>`<button class="opt" id="gopt-${i}" data-gopt="${i}">${showForm(o.f,{plain:true})}</button>`).join("")}</div>
+           <button class="linkish" id="g-type" data-g="type">Selbst schreiben</button>`}
+      <div id="gFeedback"></div>
+    </div>`;
+  if(gap.typing){ document.getElementById("gapForm").addEventListener("submit", ev=>{ ev.preventDefault(); const val = document.getElementById("gapInput").value.trim(); if(val) answerGap(null, val); }); }
+}
+function answerGap(btn, typed){
+  if(gap.answered) return; gap.answered = true;
+  const g = GAPS[gap.i], f = form(VERBS[g.v], g.tense, g.p);
+  let ok;
+  if(typed!=null){ ok = norm(typed)===norm(f.tr) || norm(typed)===norm(f.ar); document.getElementById("gapInput").disabled = true; }
+  else {
+    ok = gap.opts[+btn.dataset.gopt].ok;
+    document.querySelectorAll("[data-gopt]").forEach((b,i)=>{ b.disabled = true; if(gap.opts[i].ok) b.classList.add("correct"); else if(b===btn) b.classList.add("wrong"); });
+  }
+  if(ok) gap.score++;
+  const ga = document.getElementById("gapAr"), gt = document.getElementById("gapTr");
+  if(ga) ga.textContent = f.ar; if(gt) gt.textContent = f.tr;
+  const say = `${g.arB} ${f.ar} ${g.arA}`;
+  document.getElementById("gFeedback").innerHTML = `<div class="feedback ${ok?"ok":"no"}"><b>${ok?"Richtig!":"Nicht ganz."}</b> ${f.tr} · <span class="ar">${f.ar}</span><span class="why">${explain(g.tense,g.p)}</span></div>
+    <div class="btn-row"><button class="btn ghost" id="g-say" data-say="${say}">Satz anhören</button><button class="btn" id="g-next" data-g="next">${gap.i===4?"Fertig":"Nächster Satz"}</button></div>`;
+}
+document.getElementById("gapRoot").addEventListener("click", e=>{
+  const o = e.target.closest("[data-gopt]"); if(o) return answerGap(o);
+  const b = e.target.closest("[data-g]"); if(!b) return;
+  const a = b.dataset.g;
+  if(a==="next"){ gap.i++; gap.answered = false; gap.opts = null; }
+  else if(a==="restart") gap = {i:0, score:0, answered:false, typing:gap.typing, opts:null};
+  else if(a==="type" && !gap.answered) gap.typing = true;
+  else if(a==="choice" && !gap.answered) gap.typing = false;
+  else return;
+  renderGap();
+  if(a==="type") document.getElementById("gapInput")?.focus();
+});
+
+/* ---------- shell ---------- */
+function setView(v){
+  state.view = v; store.set("view", v);
+  for(const id of ["learn","rules","quiz","gap"]){
+    document.getElementById("v-"+id).hidden = id!==v;
+    const t = document.getElementById("tab-"+id); if(id===v) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current");
+  }
+  window.scrollTo({top:0});
+}
+document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", ()=>setView(b.dataset.view)));
+function setScript(s){
+  state.script = s; store.set("script", s);
+  document.querySelectorAll("[data-script]").forEach(b => b.setAttribute("aria-pressed", b.dataset.script===s));
+  renderLearn(); renderRules();
+  if(!(quiz && quiz.answered)) renderQuiz();
+  if(!gap.answered) renderGap();
+}
+document.querySelectorAll("[data-script]").forEach(b => b.addEventListener("click", ()=>setScript(b.dataset.script)));
+
+setScript(state.script);
+setView(["learn","rules","quiz","gap"].includes(state.view) ? state.view : "learn");
+</script>
+</body>
+</html>
