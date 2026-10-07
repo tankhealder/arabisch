@@ -53,9 +53,8 @@ h2{font-family:var(--f-display);font-size:1.3rem;margin:22px 0 6px;text-wrap:bal
 .eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;font-weight:700;color:var(--muted)}
 
 /* verb chips */
-.chips{display:flex;gap:8px;overflow-x:auto;padding-block:4px 8px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding-block:4px 8px}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;line-height:1.2}
 .chip small{font-size:.72rem;color:var(--muted)}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
 .chip[aria-pressed="true"] small{color:inherit;opacity:.85}
@@ -141,7 +140,12 @@ nav.tabs button{border:0;background:none;padding:9px 4px 10px;display:flex;flex-
 nav.tabs svg{width:24px;height:24px}
 nav.tabs button[aria-current="page"]{color:var(--accent)}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:.88rem;z-index:20;max-width:90vw}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* reward */
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.opt.correct{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+.streak{display:inline-block;margin-inline-start:6px;background:var(--gold-soft);color:var(--gold);border-radius:999px;padding:1px 9px;font-size:.82rem;font-weight:800;animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -167,6 +171,7 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
       <button id="t-pres" data-tense="pres">Präsens<small>Muḍāriʿ · المضارع</small></button>
       <button id="t-perf" data-tense="perf">Perfekt<small>Māḍī · الماضي</small></button>
     </div>
+    <div class="rule" id="verbNote" hidden></div>
     <ul class="conj" id="conjList"></ul>
     <p class="hint" id="ttsHint" hidden>Tippe auf den Lautsprecher, um das Wort zu hören.</p>
   </section>
@@ -174,7 +179,7 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
   <!-- REGELN -->
   <section id="v-rules" hidden>
     <h2>Merkhilfe auf einen Blick</h2>
-    <p class="lead">Nur Singular und „wir“. Zwei Regeln reichen für alle fünf Verben.</p>
+    <p class="lead">Nur Singular und „wir“. Zwei Regeln reichen für alle Verben. Bei drei Verben gibt es eine kleine Besonderheit.</p>
     <div class="rule">
       <h3>Präsens: die Vorsilbe zeigt die Person</h3>
       <p>Vorne am Verb steht ein Präfix. Bei „du“ (weiblich) kommt zusätzlich die Endung <b>-īna</b> dazu.</p>
@@ -203,6 +208,16 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
     <div class="rule">
       <h3>Achtung: zweimal „ta-“</h3>
       <p>Im Präsens sehen „du (m.)“ und „sie (sg.)“ gleich aus: <b>taskunu</b> heißt „du wohnst“ oder „sie wohnt“. Das Pronomen davor (anta / hiya) macht den Unterschied.</p>
+    </div>
+    <div class="rule">
+      <h3>Hohle Verben: schlafen, sagen, sein</h3>
+      <p>Diese Verben haben in der Mitte einen langen Vokal. Im Perfekt bleibt er nur bei „er“ und „sie“ lang. Vor den Endungen -tu, -ta, -ti, -nā wird er kurz.</p>
+      <div class="affix">
+        <div><b>nāma → nimtu</b><span>schlief → ich schlief</span></div>
+        <div><b>qāla → qultu</b><span>sagte → ich sagte</span></div>
+        <div><b>kāna → kuntu</b><span>war → ich war</span></div>
+      </div>
+      <p class="example">Im Präsens ist alles regelmäßig: a<b>nā</b>mu, a<b>qū</b>lu, a<b>kū</b>nu.</p>
     </div>
   </section>
 
@@ -263,18 +278,55 @@ const VERBS = [
   {id:"dhahaba", de:"gehen", tr:"dhahaba", ar:"ذَهَبَ", pStem:"dhhab", fStem:"dhahab",
    deP:["gehe","gehst","gehst","geht","geht","gehen"], deF:["ging","gingst","gingst","ging","ging","gingen"],
    arP:["أَذْهَبُ","تَذْهَبُ","تَذْهَبِينَ","يَذْهَبُ","تَذْهَبُ","نَذْهَبُ"],
-   arF:["ذَهَبْتُ","ذَهَبْتَ","ذَهَبْتِ","ذَهَبَ","ذَهَبَتْ","ذَهَبْنَا"]}
+   arF:["ذَهَبْتُ","ذَهَبْتَ","ذَهَبْتِ","ذَهَبَ","ذَهَبَتْ","ذَهَبْنَا"]},
+  {id:"akala", de:"essen", tr:"akala", ar:"أَكَلَ", pStem:"'kul", fStem:"akal", pAlt:{0:["ā","kul"]},
+   note:"Bei „ich“ im Präsens verschmelzen zwei a: nicht a'kulu, sondern <b>ākulu</b> (آكُلُ).",
+   deP:["esse","isst","isst","isst","isst","essen"], deF:["aß","aßt","aßt","aß","aß","aßen"],
+   arP:["آكُلُ","تَأْكُلُ","تَأْكُلِينَ","يَأْكُلُ","تَأْكُلُ","نَأْكُلُ"],
+   arF:["أَكَلْتُ","أَكَلْتَ","أَكَلْتِ","أَكَلَ","أَكَلَتْ","أَكَلْنَا"]},
+  {id:"jalasa", de:"sitzen", tr:"jalasa", ar:"جَلَسَ", pStem:"jlis", fStem:"jalas",
+   deP:["sitze","sitzt","sitzt","sitzt","sitzt","sitzen"], deF:["saß","saßt","saßt","saß","saß","saßen"],
+   arP:["أَجْلِسُ","تَجْلِسُ","تَجْلِسِينَ","يَجْلِسُ","تَجْلِسُ","نَجْلِسُ"],
+   arF:["جَلَسْتُ","جَلَسْتَ","جَلَسْتِ","جَلَسَ","جَلَسَتْ","جَلَسْنَا"]},
+  {id:"laiba", de:"spielen", tr:"laʿiba", ar:"لَعِبَ", pStem:"lʿab", fStem:"laʿib",
+   deP:["spiele","spielst","spielst","spielt","spielt","spielen"], deF:["spielte","spieltest","spieltest","spielte","spielte","spielten"],
+   arP:["أَلْعَبُ","تَلْعَبُ","تَلْعَبِينَ","يَلْعَبُ","تَلْعَبُ","نَلْعَبُ"],
+   arF:["لَعِبْتُ","لَعِبْتَ","لَعِبْتِ","لَعِبَ","لَعِبَتْ","لَعِبْنَا"]},
+  {id:"nama", de:"schlafen", tr:"nāma", ar:"نَامَ", pStem:"nām", fStem:"nim", fStem2:"nām",
+   note:"Hohles Verb: Im Perfekt wird das lange ā vor den Endungen -tu, -ta, -ti, -nā zu kurzem i (nimtu). Bei er/sie bleibt es lang (nāma, nāmat).",
+   deP:["schlafe","schläfst","schläfst","schläft","schläft","schlafen"], deF:["schlief","schliefst","schliefst","schlief","schlief","schliefen"],
+   arP:["أَنَامُ","تَنَامُ","تَنَامِينَ","يَنَامُ","تَنَامُ","نَنَامُ"],
+   arF:["نِمْتُ","نِمْتَ","نِمْتِ","نَامَ","نَامَتْ","نِمْنَا"]},
+  {id:"kataba", de:"schreiben", tr:"kataba", ar:"كَتَبَ", pStem:"ktub", fStem:"katab",
+   deP:["schreibe","schreibst","schreibst","schreibt","schreibt","schreiben"], deF:["schrieb","schriebst","schriebst","schrieb","schrieb","schrieben"],
+   arP:["أَكْتُبُ","تَكْتُبُ","تَكْتُبِينَ","يَكْتُبُ","تَكْتُبُ","نَكْتُبُ"],
+   arF:["كَتَبْتُ","كَتَبْتَ","كَتَبْتِ","كَتَبَ","كَتَبَتْ","كَتَبْنَا"]},
+  {id:"faala", de:"machen", tr:"faʿala", ar:"فَعَلَ", pStem:"fʿal", fStem:"faʿal",
+   deP:["mache","machst","machst","macht","macht","machen"], deF:["machte","machtest","machtest","machte","machte","machten"],
+   arP:["أَفْعَلُ","تَفْعَلُ","تَفْعَلِينَ","يَفْعَلُ","تَفْعَلُ","نَفْعَلُ"],
+   arF:["فَعَلْتُ","فَعَلْتَ","فَعَلْتِ","فَعَلَ","فَعَلَتْ","فَعَلْنَا"]},
+  {id:"qala", de:"sagen", tr:"qāla", ar:"قَالَ", pStem:"qūl", fStem:"qul", fStem2:"qāl",
+   note:"Hohles Verb: Im Perfekt wird das lange ā vor den Endungen -tu, -ta, -ti, -nā zu kurzem u (qultu). Bei er/sie bleibt es lang (qāla, qālat).",
+   deP:["sage","sagst","sagst","sagt","sagt","sagen"], deF:["sagte","sagtest","sagtest","sagte","sagte","sagten"],
+   arP:["أَقُولُ","تَقُولُ","تَقُولِينَ","يَقُولُ","تَقُولُ","نَقُولُ"],
+   arF:["قُلْتُ","قُلْتَ","قُلْتِ","قَالَ","قَالَتْ","قُلْنَا"]},
+  {id:"kana", de:"sein", tr:"kāna", ar:"كَانَ", pStem:"kūn", fStem:"kun", fStem2:"kān",
+   note:"Hohles Verb wie qāla: kuntu, aber kāna. Im Präsens lässt man „sein“ im Satz meist weg (anā fī l-bayt = ich bin zu Hause). yakūnu benutzt man eher für „gewöhnlich sein“ oder nach Wörtern wie „muss“.",
+   deP:["bin","bist","bist","ist","ist","sind"], deF:["war","warst","warst","war","war","waren"],
+   arP:["أَكُونُ","تَكُونُ","تَكُونِينَ","يَكُونُ","تَكُونُ","نَكُونُ"],
+   arF:["كُنْتُ","كُنْتَ","كُنْتِ","كَانَ","كَانَتْ","كُنَّا"]}
 ];
 
 // One form = {tr, html (translit with marked affix), ar, de}
 function form(v, tense, p){
   if(tense==="pres"){
-    const end = PRE_END[p], tr = PRE[p]+v.pStem+end;
-    const html = `<mark>${PRE[p]}</mark>${v.pStem}${end==="īna"?`<mark>īna</mark>`:end}`;
+    const [pre, stem] = v.pAlt?.[p] || [PRE[p], v.pStem], end = PRE_END[p], tr = pre+stem+end;
+    const html = `<mark>${pre}</mark>${stem}${end==="īna"?`<mark>īna</mark>`:end}`;
     return {tr, html, ar:v.arP[p], de:`${PRON[p].de} ${v.deP[p]}`};
   }
-  const tr = v.fStem+SUF[p];
-  const html = p===3 ? `${v.fStem}a` : `${v.fStem}<mark>${SUF[p]}</mark>`;
+  // hollow verbs (nāma, qāla, kāna) keep the long vowel only for er/sie
+  const stem = (p===3||p===4) && v.fStem2 ? v.fStem2 : v.fStem, tr = stem+SUF[p];
+  const html = p===3 ? `${stem}a` : `${stem}<mark>${SUF[p]}</mark>`;
   return {tr, html, ar:v.arF[p], de:`${PRON[p].de} ${v.deF[p]}`};
 }
 const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -285,7 +337,7 @@ const store = {
   set(k, v){ try{ localStorage.setItem("arv:"+k, JSON.stringify(v)); }catch(e){} }
 };
 const state = {
-  view: store.get("view","learn"), verb: store.get("verb",0), tense: store.get("tense","pres"),
+  view: store.get("view","learn"), verb: Math.min(store.get("verb",0), VERBS.length-1), tense: store.get("tense","pres"),
   script: store.get("script","both")
 };
 
@@ -313,6 +365,48 @@ const SPEAK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 let toastT;
 function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(()=>t.hidden = true, 3500); }
 
+/* ---------- reward: confetti + praise ---------- */
+const CONFETTI_COLORS = ["#0B7A6F","#3CC2B2","#E2B24F","#F28B82","#7FB3F5","#C58AF9"];
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let confettiParts = [], confettiRaf = 0;
+function confetti(x, y, n=40, power=1){
+  if(reduceMotion) return;
+  let cv = document.getElementById("confetti");
+  if(!cv){ cv = document.createElement("canvas"); cv.id = "confetti"; document.body.appendChild(cv); }
+  for(let i=0;i<n;i++){
+    const a = -Math.PI/2 + (Math.random()-.5)*Math.PI*1.1, s = (4+Math.random()*7)*power;
+    confettiParts.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:Math.random()*Math.PI, vr:(Math.random()-.5)*.3,
+      w:6+Math.random()*5, h:4+Math.random()*4, c:CONFETTI_COLORS[rnd(CONFETTI_COLORS.length)], life:0});
+  }
+  if(!confettiRaf) confettiRaf = requestAnimationFrame(tickConfetti);
+}
+function tickConfetti(){
+  const cv = document.getElementById("confetti"), dpr = devicePixelRatio || 1;
+  if(cv.width !== innerWidth*dpr || cv.height !== innerHeight*dpr){ cv.width = innerWidth*dpr; cv.height = innerHeight*dpr; }
+  const cx = cv.getContext("2d"); cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,innerWidth,innerHeight);
+  confettiParts = confettiParts.filter(p => p.y < innerHeight+20 && p.life < 220);
+  for(const p of confettiParts){
+    p.vy += .25; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.min(1, (220-p.life)/40);
+    cx.fillStyle = p.c; cx.fillRect(-p.w/2, -p.h/2, p.w, p.h * Math.abs(Math.cos(p.r*2))); cx.restore();
+  }
+  confettiRaf = confettiParts.length ? requestAnimationFrame(tickConfetti) : 0;
+}
+function burstFrom(el, n, power){ const r = el.getBoundingClientRect(); confetti(r.left+r.width/2, r.top+r.height/2, n, power); }
+function confettiRain(){ for(let i=0;i<5;i++) setTimeout(()=>confetti(innerWidth*(.1+.2*i), innerHeight*.35, 45, 1.3), i*120); }
+
+const PRAISE = [["Richtig!","أَحْسَنْتِ"],["Super!","مُمْتَاز"],["Genau!","رَائِع"],["Toll gemacht!","بْرَافُو"],["Sehr gut!","جَيِّد جِدًّا"],["Klasse!","عَظِيم"]];
+let streak = 0;
+// returns the headline for the feedback box and fires confetti from el
+function cheer(ok, el){
+  if(!ok){ streak = 0; return null; }
+  streak++;
+  const big = streak>=3 && (streak===3 || streak%5===0);
+  if(el) burstFrom(el, big ? 90 : 35, big ? 1.4 : 1);
+  const [de, ar] = PRAISE[rnd(PRAISE.length)];
+  return `${de} <span class="ar">${ar}</span>${streak>=3 ? `<span class="streak">${streak} in Folge!</span>` : ""}`;
+}
+
 /* ---------- rendering helpers ---------- */
 function showForm(f, opts={}){
   const s = state.script, parts = [];
@@ -326,7 +420,8 @@ function renderLearn(){
   document.getElementById("verbChips").innerHTML = VERBS.map((v,i)=>
     `<button class="chip" id="verb-${v.id}" data-verb="${i}" aria-pressed="${i===state.verb}">${v.de}<small>${v.tr} · <span class="ar">${v.ar}</span></small></button>`).join("");
   document.querySelectorAll("[data-tense]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tense===state.tense));
-  const v = VERBS[state.verb];
+  const v = VERBS[state.verb], note = document.getElementById("verbNote");
+  note.hidden = !v.note; note.innerHTML = v.note ? `<span class="eyebrow">Besonderheit</span><p>${v.note}</p>` : "";
   document.getElementById("conjList").innerHTML = PRON.map((p,i)=>{
     const f = form(v, state.tense, i);
     return `<li><div class="pron"><b>${p.tr}</b><span>${p.de}</span></div>
@@ -357,9 +452,13 @@ const rnd = n => Math.floor(Math.random()*n);
 const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j = rnd(i+1); [a[i],a[j]] = [a[j],a[i]]; } return a; };
 const TENSE_DE = {pres:"Präsens", perf:"Perfekt"};
 
-function explain(tense, p){
-  if(tense==="pres") return p===2 ? "Präsens, du (f.): Vorsilbe ta- und Endung -īna." : `Präsens, ${PRON[p].de}: Vorsilbe ${PRE[p]}-.`;
-  return p===3 ? "Perfekt, er: reine Grundform." : `Perfekt, ${PRON[p].de}: Endung -${SUF[p]}.`;
+function explain(tense, p, v){
+  if(tense==="pres"){
+    if(v?.pAlt?.[p]) return `Präsens, ${PRON[p].de}: Vorsilbe a- verschmilzt mit dem Stamm zu ${v.pAlt[p][0]}-.`;
+    return p===2 ? "Präsens, du (f.): Vorsilbe ta- und Endung -īna." : `Präsens, ${PRON[p].de}: Vorsilbe ${PRE[p]}-.`;
+  }
+  const base = p===3 ? "Perfekt, er: reine Grundform." : `Perfekt, ${PRON[p].de}: Endung -${SUF[p]}.`;
+  return v?.fStem2 && p!==3 && p!==4 ? `${base} Hohles Verb: ${v.fStem2} wird kurz zu ${v.fStem}-.` : base;
 }
 // distractors: same verb, other person or other tense; unique by translit
 function distractors(vi, tense, p, n=3){
@@ -377,23 +476,23 @@ const MODES = [
 let quiz = null;
 
 function makeQuestion(mode){
-  const vi = rnd(5), tense = Math.random()<.5 ? "pres" : "perf", p = rnd(6), v = VERBS[vi], f = form(v,tense,p);
+  const vi = rnd(VERBS.length), tense = Math.random()<.5 ? "pres" : "perf", p = rnd(6), v = VERBS[vi], f = form(v,tense,p);
   const ds = distractors(vi,tense,p);
   if(mode==="ar2de"){
     const opts = shuffle([{label:f.de, ok:true}, ...ds.map(d=>({label:d.f.de, ok:false}))]);
-    return {prompt: showForm(f,{plain:true}), sub:`Was bedeutet diese Form von <b>${v.de}</b>?`, opts, say:f.ar, why:explain(tense,p), answer:f.de};
+    return {prompt: showForm(f,{plain:true}), sub:`Was bedeutet diese Form von <b>${v.de}</b>?`, opts, say:f.ar, why:explain(tense,p,v), answer:f.de};
   }
   const opts = shuffle([{f, ok:true}, ...ds.map(d=>({f:d.f, ok:false}))]).map(o=>({label:showForm(o.f,{plain:true}), ok:o.ok}));
   const answer = `${f.tr} · <span class="ar">${f.ar}</span>`;
-  if(mode==="build") return {prompt:`${PRON[p].tr} <span class="ar">${PRON[p].ar}</span> + ${v.tr}`, sub:`${PRON[p].de} · ${v.de} · <b>${TENSE_DE[tense]}</b>`, opts, say:f.ar, why:explain(tense,p), answer};
-  return {prompt:f.de.charAt(0).toUpperCase()+f.de.slice(1), sub:`${v.de} · ${TENSE_DE[tense]}`, opts, say:f.ar, why:explain(tense,p), answer};
+  if(mode==="build") return {prompt:`${PRON[p].tr} <span class="ar">${PRON[p].ar}</span> + ${v.tr}`, sub:`${PRON[p].de} · ${v.de} · <b>${TENSE_DE[tense]}</b>`, opts, say:f.ar, why:explain(tense,p,v), answer};
+  return {prompt:f.de.charAt(0).toUpperCase()+f.de.slice(1), sub:`${v.de} · ${TENSE_DE[tense]}`, opts, say:f.ar, why:explain(tense,p,v), answer};
 }
 
 function renderQuiz(){
   const root = document.getElementById("quizRoot");
   if(!quiz){
     const best = store.get("best",{});
-    root.innerHTML = `<p class="lead">10 Fragen pro Runde, gemischt aus allen fünf Verben und beiden Zeiten.</p>
+    root.innerHTML = `<p class="lead">10 Fragen pro Runde, gemischt aus allen ${VERBS.length} Verben und beiden Zeiten.</p>
       <div class="mode-pick">${MODES.map((m,i)=>`<button class="mode" id="mode-${m.id}" data-mode="${m.id}"><span class="num">${i+1}</span><div><b>${m.title}</b><span>${m.desc}${best[m.id]!=null?` · Bestwert ${best[m.id]}/10`:""}</span></div></button>`).join("")}</div>`;
     return;
   }
@@ -404,6 +503,7 @@ function renderQuiz(){
     root.innerHTML = `<div class="card result"><div class="eyebrow">Ergebnis</div><div class="big">${quiz.score}/10</div><p>${msg}</p>
       ${quiz.score>prev && prev>=0 ? `<p class="best">Neuer Bestwert!</p>`:""}
       <div class="btn-row"><button class="btn ghost" id="q-back" data-q="back">Andere Übung</button><button class="btn" id="q-again" data-q="again">Nochmal</button></div></div>`;
+    if(!quiz.celebrated){ quiz.celebrated = true; if(quiz.score>=7) confettiRain(); if(quiz.score===10) setTimeout(confettiRain, 700); }
     return;
   }
   const q = quiz.qs[quiz.i];
@@ -427,8 +527,9 @@ document.getElementById("quizRoot").addEventListener("click", e=>{
     quiz.answered = true;
     const q = quiz.qs[quiz.i], ok = q.opts[+o.dataset.opt].ok;
     if(ok) quiz.score++;
+    const head = cheer(ok, o);
     document.querySelectorAll("[data-opt]").forEach((b,i)=>{ b.disabled = true; if(q.opts[i].ok) b.classList.add("correct"); else if(b===o) b.classList.add("wrong"); });
-    document.getElementById("qFeedback").innerHTML = `<div class="feedback ${ok?"ok":"no"}"><b>${ok?"Richtig!":"Leider falsch."}</b>${ok?"":` Richtig ist: ${q.answer}`}<span class="why">${q.why}</span></div>
+    document.getElementById("qFeedback").innerHTML = `<div class="feedback ${ok?"ok":"no"}"><b>${ok?head:"Leider falsch."}</b>${ok?"":` Richtig ist: ${q.answer}`}<span class="why">${q.why}</span></div>
       <div class="btn-row"><button class="btn ghost" id="q-say" data-say="${q.say}">Anhören</button><button class="btn" id="q-next" data-q="next">${quiz.i===9?"Ergebnis":"Weiter"}</button></div>`;
   }
 });
@@ -457,6 +558,7 @@ function renderGap(){
   if(gap.i >= GAPS.length){
     root.innerHTML = `<div class="card result"><div class="eyebrow">Geschafft</div><div class="big">${gap.score}/5</div><p>${gap.score===5?"Alles richtig! ممتاز":"Gut gemacht. Noch eine Runde?"}</p>
       <button class="btn" id="g-restart" data-g="restart">Nochmal von vorn</button></div>`;
+    if(!gap.celebrated){ gap.celebrated = true; if(gap.score>=4) confettiRain(); if(gap.score===5) setTimeout(confettiRain, 700); }
     return;
   }
   const g = GAPS[gap.i], v = VERBS[g.v];
@@ -486,10 +588,11 @@ function answerGap(btn, typed){
     document.querySelectorAll("[data-gopt]").forEach((b,i)=>{ b.disabled = true; if(gap.opts[i].ok) b.classList.add("correct"); else if(b===btn) b.classList.add("wrong"); });
   }
   if(ok) gap.score++;
+  const head = cheer(ok, btn || document.getElementById("gapInput"));
   const ga = document.getElementById("gapAr"), gt = document.getElementById("gapTr");
   if(ga) ga.textContent = f.ar; if(gt) gt.textContent = f.tr;
   const say = `${g.arB} ${f.ar} ${g.arA}`;
-  document.getElementById("gFeedback").innerHTML = `<div class="feedback ${ok?"ok":"no"}"><b>${ok?"Richtig!":"Nicht ganz."}</b> ${f.tr} · <span class="ar">${f.ar}</span><span class="why">${explain(g.tense,g.p)}</span></div>
+  document.getElementById("gFeedback").innerHTML = `<div class="feedback ${ok?"ok":"no"}"><b>${ok?head:"Nicht ganz."}</b> ${f.tr} · <span class="ar">${f.ar}</span><span class="why">${explain(g.tense,g.p,VERBS[g.v])}</span></div>
     <div class="btn-row"><button class="btn ghost" id="g-say" data-say="${say}">Satz anhören</button><button class="btn" id="g-next" data-g="next">${gap.i===4?"Fertig":"Nächster Satz"}</button></div>`;
 }
 document.getElementById("gapRoot").addEventListener("click", e=>{
