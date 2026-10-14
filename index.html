@@ -41,7 +41,27 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 .wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:0 110px}
 
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;border-bottom:1px solid var(--line);margin-inline:-16px;padding-inline:16px}
-.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.title{display:flex;align-items:center;gap:6px;min-width:0}
+.title h1{white-space:nowrap}
+.title{position:relative}
+.bubble{position:absolute;left:2px;top:calc(100% + 8px);background:var(--surface);color:#D0548C;border:2px solid #F7A8C8;border-radius:14px;padding:4px 12px;font-weight:800;font-size:1rem;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.12);pointer-events:none;transform-origin:14px -6px;animation:bubble 1.8s ease forwards}
+.bubble::before{content:"";position:absolute;left:12px;top:-8px;border:7px solid transparent;border-top:0;border-bottom:8px solid #F7A8C8}
+.bubble.surprise{white-space:normal;width:max-content;max-width:calc(100vw - 36px);font-size:1.1rem;padding:8px 14px;border-color:var(--gold);color:var(--gold);background:var(--gold-soft);animation:bubbleIn .5s ease forwards;pointer-events:auto;cursor:pointer}
+.bubble.surprise::before{border-bottom-color:var(--gold)}
+@keyframes bubbleIn{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.1)}100%{opacity:1;transform:scale(1)}}
+@keyframes bubble{0%{opacity:0;transform:scale(.3)}12%{opacity:1;transform:scale(1.12)}22%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-4px)}}
+@media (max-width:400px){.brand h1{font-size:1.25rem}.brand h1 .ar{font-size:1rem;margin-inline-start:3px}.script-toggle button{padding:5px 8px}}
+/* jellyfish mascot: bobs forever, hops when tapped or on a right answer */
+.jelly{border:0;background:none;padding:0;width:34px;height:42px;flex-shrink:0;animation:bob 2.6s ease-in-out infinite;margin-block:-4px}
+.jelly svg{width:100%;height:100%;overflow:visible;display:block;transform-origin:50% 60%}
+.jelly .tents{transform-origin:20px 24px;animation:sway 1.3s ease-in-out infinite alternate}
+.jelly.hop svg{animation:hop .7s cubic-bezier(.3,1.4,.5,1)}
+.jelly.wobble svg{animation:wobble .8s ease-in-out}
+@keyframes wobble{0%,100%{transform:none}20%{transform:rotate(-10deg)}40%{transform:rotate(8deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(3deg)}}
+@keyframes bob{0%,100%{transform:translateY(2px)}50%{transform:translateY(-5px)}}
+@keyframes sway{from{transform:skewX(-7deg)}to{transform:skewX(7deg)}}
+@keyframes hop{0%{transform:scale(1.1,.85)}35%{transform:translateY(-14px) scale(.92,1.12) rotate(-8deg)}65%{transform:translateY(-6px) rotate(6deg)}100%{transform:none}}
 .brand h1{font-family:var(--f-display);font-size:1.45rem;margin:0;letter-spacing:-.01em}
 .brand h1 .ar{font-size:1.2rem;color:var(--accent);margin-inline-start:6px}
 .script-toggle{display:flex;background:var(--sunk);border-radius:999px;padding:3px;gap:2px;flex-shrink:0}
@@ -153,7 +173,22 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <h1>Verben <span class="ar">الأفعال</span></h1>
+      <div class="title">
+        <button class="jelly" id="jelly" aria-label="Qualle antippen">
+          <svg viewBox="0 0 40 48" aria-hidden="true">
+            <g class="tents" fill="none" stroke="#E98BB5" stroke-width="2.4" stroke-linecap="round">
+              <path d="M10 24q-3 5 0 10t0 10"/><path d="M17 25q3 5 0 9t0 9"/><path d="M23 25q-3 5 0 9t0 9"/><path d="M30 24q3 5 0 10t0 10"/>
+            </g>
+            <path fill="#F7A8C8" d="M4 22C4 10 11.5 3 20 3s16 7 16 19c0 2.2-2 3.2-4 2-1.6 1.8-4.4 1.8-6 0-1.6 1.8-4.4 1.8-6 0-1.6 1.8-4.4 1.8-6 0-1.6 1.8-4.4 1.8-6 0-2 1.2-4 .2-4-2z"/>
+            <ellipse cx="12.5" cy="10.5" rx="4" ry="2.3" fill="#fff" opacity=".55" transform="rotate(-35 12.5 10.5)"/>
+            <circle cx="14.5" cy="16" r="2.1" fill="#3A2340"/><circle cx="25.5" cy="16" r="2.1" fill="#3A2340"/>
+            <circle cx="15.2" cy="15.2" r=".7" fill="#fff"/><circle cx="26.2" cy="15.2" r=".7" fill="#fff"/>
+            <ellipse cx="10.5" cy="19.5" rx="2.3" ry="1.4" fill="#FF6F9F" opacity=".5"/><ellipse cx="29.5" cy="19.5" rx="2.3" ry="1.4" fill="#FF6F9F" opacity=".5"/>
+            <path d="M18 19.5q2 2 4 0" fill="none" stroke="#3A2340" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <h1>Verben <span class="ar">الأفعال</span></h1>
+      </div>
       <div class="script-toggle" role="group" aria-label="Schrift">
         <button id="sc-both" data-script="both">Beides</button>
         <button id="sc-ar" data-script="ar">عربي</button>
@@ -369,14 +404,15 @@ function toast(msg){ const t = document.getElementById("toast"); t.textContent =
 const CONFETTI_COLORS = ["#0B7A6F","#3CC2B2","#E2B24F","#F28B82","#7FB3F5","#C58AF9"];
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let confettiParts = [], confettiRaf = 0;
-function confetti(x, y, n=40, power=1){
+// dir = launch direction in radians (default straight up); gift = emoji instead of a paper strip
+function confetti(x, y, n=40, power=1, dir=-Math.PI/2, gift=null){
   if(reduceMotion) return;
   let cv = document.getElementById("confetti");
   if(!cv){ cv = document.createElement("canvas"); cv.id = "confetti"; document.body.appendChild(cv); }
   for(let i=0;i<n;i++){
-    const a = -Math.PI/2 + (Math.random()-.5)*Math.PI*1.1, s = (4+Math.random()*7)*power;
-    confettiParts.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:Math.random()*Math.PI, vr:(Math.random()-.5)*.3,
-      w:6+Math.random()*5, h:4+Math.random()*4, c:CONFETTI_COLORS[rnd(CONFETTI_COLORS.length)], life:0});
+    const a = dir + (Math.random()-.5)*Math.PI*1.1, s = (4+Math.random()*7)*power;
+    confettiParts.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:gift ? (Math.random()-.5)*.6 : Math.random()*Math.PI, vr:(Math.random()-.5)*(gift ? .08 : .3),
+      w:6+Math.random()*5, h:4+Math.random()*4, c:CONFETTI_COLORS[rnd(CONFETTI_COLORS.length)], life:0, gift, size:22+Math.random()*14});
   }
   if(!confettiRaf) confettiRaf = requestAnimationFrame(tickConfetti);
 }
@@ -384,23 +420,59 @@ function tickConfetti(){
   const cv = document.getElementById("confetti"), dpr = devicePixelRatio || 1;
   if(cv.width !== innerWidth*dpr || cv.height !== innerHeight*dpr){ cv.width = innerWidth*dpr; cv.height = innerHeight*dpr; }
   const cx = cv.getContext("2d"); cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,innerWidth,innerHeight);
-  confettiParts = confettiParts.filter(p => p.y < innerHeight+20 && p.life < 220);
+  confettiParts = confettiParts.filter(p => p.y < innerHeight+40 && p.life < (p.gift ? 320 : 220));
   for(const p of confettiParts){
-    p.vy += .25; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
-    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.min(1, (220-p.life)/40);
-    cx.fillStyle = p.c; cx.fillRect(-p.w/2, -p.h/2, p.w, p.h * Math.abs(Math.cos(p.r*2))); cx.restore();
+    p.vy += p.gift ? .16 : .25; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.min(1, ((p.gift ? 320 : 220)-p.life)/40);
+    if(p.gift){ cx.font = `${p.size}px serif`; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(p.gift, 0, 0); }
+    else { cx.fillStyle = p.c; cx.fillRect(-p.w/2, -p.h/2, p.w, p.h * Math.abs(Math.cos(p.r*2))); }
+    cx.restore();
   }
   confettiRaf = confettiParts.length ? requestAnimationFrame(tickConfetti) : 0;
 }
 function burstFrom(el, n, power){ const r = el.getBoundingClientRect(); confetti(r.left+r.width/2, r.top+r.height/2, n, power); }
 function confettiRain(){ for(let i=0;i<5;i++) setTimeout(()=>confetti(innerWidth*(.1+.2*i), innerHeight*.35, 45, 1.3), i*120); }
+// surprise: the jellyfish spits out gifts and confetti in several puffs, plus two rains
+const GIFTS = ["🎁","🎁","🎁","🎀","🧸","🍬","💝"];
+function surpriseShow(){
+  const j = document.getElementById("jelly");
+  for(let k=0;k<6;k++) setTimeout(()=>{
+    const r = j.getBoundingClientRect(), x = r.left+r.width/2, y = r.top+r.height*.7;
+    jellyHop();
+    confetti(x, y, 50, 1.2, Math.PI/3);
+    for(let g=0; g<3; g++) confetti(x, y, 1, .9+Math.random()*.5, Math.PI/3, GIFTS[rnd(GIFTS.length)]);
+  }, k*450);
+  setTimeout(confettiRain, 400); setTimeout(confettiRain, 1600);
+}
+
+function jellyAnim(cls){ const j = document.getElementById("jelly"); j.classList.remove("hop","wobble"); void j.offsetWidth; j.classList.add(cls); }
+const jellyHop = () => jellyAnim("hop"), jellyWobble = () => jellyAnim("wobble");
+document.getElementById("jelly").addEventListener("click", jellyHop);
+// speech bubble on right answers, cycling through the words in order
+const JELLY_WORDS = ["Klasse!","Super!","Mega!","Blub-tastisch!"];
+let jellyWord = 0, bubbleT;
+function jellySay(text, surprise){
+  const old = document.querySelector(".bubble");
+  if(old?.classList.contains("surprise") && !surprise) return; // let the surprise stay readable
+  old?.remove(); clearTimeout(bubbleT);
+  const b = document.createElement("div"); b.className = "bubble"+(surprise?" surprise":""); b.setAttribute("role","status");
+  b.textContent = text || JELLY_WORDS[jellyWord++ % JELLY_WORDS.length];
+  document.querySelector(".title").appendChild(b);
+  if(surprise) b.addEventListener("click", ()=>b.remove());
+  bubbleT = setTimeout(()=>b.remove(), surprise ? 10000 : 1900);
+}
+// every 20 right answers (counted across days) the jellyfish announces a surprise
+const SURPRISE_EVERY = 20;
 
 const PRAISE = [["Richtig!","أَحْسَنْتِ"],["Super!","مُمْتَاز"],["Genau!","رَائِع"],["Toll gemacht!","بْرَافُو"],["Sehr gut!","جَيِّد جِدًّا"],["Klasse!","عَظِيم"]];
 let streak = 0;
 // returns the headline for the feedback box and fires confetti from el
 function cheer(ok, el){
-  if(!ok){ streak = 0; return null; }
-  streak++;
+  if(!ok){ streak = 0; jellyWobble(); jellySay("Fast geschafft! Noch mal!"); return null; }
+  streak++; jellyHop();
+  const total = store.get("correct",0)+1; store.set("correct", total);
+  if(total % SURPRISE_EVERY === 0){ jellySay("Hol dir eine Überraschung bei Lucy ab! 🎁", true); surpriseShow(); }
+  else jellySay();
   const big = streak>=3 && (streak===3 || streak%5===0);
   if(el) burstFrom(el, big ? 90 : 35, big ? 1.4 : 1);
   const [de, ar] = PRAISE[rnd(PRAISE.length)];
