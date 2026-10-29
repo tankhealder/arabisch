@@ -153,9 +153,21 @@ mark{background:var(--gold-soft);color:var(--gold);border-radius:4px;padding:0 2
 .typebox button{border:0;background:var(--accent);color:var(--accent-fg);border-radius:12px;padding:0 16px;font-weight:700}
 .linkish{background:none;border:0;color:var(--accent);font-weight:700;padding:8px 0;font-size:.9rem;text-decoration:underline;text-underline-offset:3px}
 
+/* vocab flashcards */
+.voc-label{font-weight:700;font-size:.9rem;margin:14px 0 0}
+.flash{text-align:center;min-height:230px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.flash .w-de{font-family:var(--f-display);font-size:2rem;line-height:1.2}
+.flash .w-ar{font-family:var(--f-ar);font-size:2.6rem;line-height:1.5;direction:rtl}
+.flash .w-tr{font-size:1.25rem;font-weight:700}
+.flash .w-sub{color:var(--muted);font-size:.9rem}
+.flash hr{width:60%;border:0;border-top:1.5px dashed var(--line);margin:12px auto}
+.flash .speak{margin:6px auto 0}
+.miss-list{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+.miss-list span{background:var(--sunk);border-radius:999px;padding:3px 10px;font-size:.88rem}
+
 /* tabbar */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
 nav.tabs button{border:0;background:none;padding:9px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.74rem;font-weight:700;color:var(--muted)}
 nav.tabs svg{width:24px;height:24px}
 nav.tabs button[aria-current="page"]{color:var(--accent)}
@@ -268,6 +280,12 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
     <p class="lead">Die fünf Sätze vom Übungsblatt. Setze die richtige Form ein.</p>
     <div id="gapRoot"></div>
   </section>
+
+  <!-- VOKABELN -->
+  <section id="v-voc" hidden>
+    <h2>Vokabeln</h2>
+    <div id="vocRoot"></div>
+  </section>
 </div>
 
 <nav class="tabs" aria-label="Bereiche">
@@ -276,6 +294,7 @@ nav.tabs button[aria-current="page"]{color:var(--accent)}
     <button id="tab-rules" data-view="rules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>Merkhilfe</button>
     <button id="tab-quiz" data-view="quiz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.7 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>Üben</button>
     <button id="tab-gap" data-view="gap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h4M16 7h4M4 12h16M4 17h7"/><path d="M9 9.5h6" stroke-dasharray="2 2"/></svg>Lücken</button>
+    <button id="tab-voc" data-view="voc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="14" height="16" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h10"/><path d="M11 9h6M11 13h4"/></svg>Vokabeln</button>
   </div>
 </nav>
 <div class="toast" id="toast" hidden></div>
@@ -680,10 +699,81 @@ document.getElementById("gapRoot").addEventListener("click", e=>{
   if(a==="type") document.getElementById("gapInput")?.focus();
 });
 
+/* ---------- VOKABELN ---------- */
+// flashcards: reveal, then rate yourself; "noch nicht" puts the card back a few places later
+const NEW_FROM = 5; // VERBS from this index on were added later
+const vocPrefs = {dir: store.get("vocDir","de2ar"), set: store.get("vocSet","all")};
+let voc = null;
+
+function vocStart(ids){
+  voc = {queue:shuffle(ids), total:ids.length, missed:new Set(), flipped:false, ids};
+  renderVoc(); window.scrollTo({top:0});
+}
+function vocWord(v){ // Arabic side according to the script toggle
+  const s = state.script;
+  return (s!=="tr" ? `<div class="w-ar">${v.ar}</div>` : "") + (s!=="ar" ? `<div class="w-tr">${v.tr}</div>` : "");
+}
+function renderVoc(){
+  const root = document.getElementById("vocRoot");
+  if(!voc){
+    const nAll = VERBS.length, nNew = VERBS.length-NEW_FROM;
+    const seg = (key, opts) => `<div class="seg" role="group">${opts.map(([val,label,small])=>
+      `<button data-vset="${key}:${val}" aria-pressed="${vocPrefs[key]===val}">${label}<small>${small}</small></button>`).join("")}</div>`;
+    root.innerHTML = `<p class="lead">Karte ansehen, Antwort überlegen, aufdecken. Was du noch nicht wusstest, kommt in der Runde nochmal dran.</p>
+      <p class="voc-label">Richtung</p>${seg("dir",[["de2ar","Deutsch → Arabisch","wohnen → sakana"],["ar2de","Arabisch → Deutsch","sakana → wohnen"]])}
+      <p class="voc-label">Wörter</p>${seg("set",[["all",`Alle ${nAll}`,"ganze Liste"],["new",`Nur neue ${nNew}`,"essen, sitzen, spielen …"]])}
+      <button class="btn" id="voc-start" data-voc="start">Los geht's</button>`;
+    return;
+  }
+  if(!voc.queue.length){
+    const missed = [...voc.missed], first = voc.total-missed.length;
+    root.innerHTML = `<div class="card result"><div class="eyebrow">Geschafft</div><div class="big">${first}/${voc.total}</div>
+      <p>${missed.length ? "auf Anhieb gewusst. Diese Wörter brauchten eine zweite Runde:" : "Alle auf Anhieb gewusst! مُمْتَاز"}</p>
+      ${missed.length ? `<div class="miss-list">${missed.map(i=>`<span>${VERBS[i].de} · ${VERBS[i].tr}</span>`).join("")}</div>` : ""}
+      ${missed.length ? `<button class="btn" id="voc-hard" data-voc="hard">Nur diese nochmal üben</button>` : ""}
+      <div class="btn-row"><button class="btn ghost" id="voc-back" data-voc="back">Andere Auswahl</button><button class="btn${missed.length?" ghost":""}" id="voc-again" data-voc="again">Alle nochmal</button></div></div>`;
+    if(!voc.celebrated){ voc.celebrated = true; if(!missed.length) confettiRain(); }
+    return;
+  }
+  const v = VERBS[voc.queue[0]], done = voc.total - voc.queue.length;
+  const question = vocPrefs.dir==="de2ar" ? `<div class="w-de">${v.de}</div>` : vocWord(v);
+  const answer = vocPrefs.dir==="de2ar" ? vocWord(v) : `<div class="w-de">${v.de}</div>`;
+  const pres = form(v,"pres",3);
+  root.innerHTML = `<div class="progress"><div class="bar"><i style="width:${done/voc.total*100}%"></i></div><span>${done}/${voc.total} gelernt</span></div>
+    <div class="card flash">
+      <div class="eyebrow">${vocPrefs.dir==="de2ar" ? "Wie heißt das auf Arabisch?" : "Was bedeutet das?"}</div>
+      ${question}
+      ${voc.flipped ? `<hr>${answer}
+        <div class="w-sub">Präsens: ${state.script!=="ar" ? pres.tr : ""} ${state.script!=="tr" ? `<span class="ar">${pres.ar}</span>` : ""} (er ${v.deP[3]})</div>
+        <button class="speak" data-say="${v.ar}" aria-label="${v.tr} anhören">${SPEAK_SVG}</button>` : ""}
+    </div>
+    ${voc.flipped
+      ? `<div class="btn-row"><button class="btn ghost" id="voc-no" data-voc="no">Noch nicht</button><button class="btn" id="voc-yes" data-voc="yes">Wusste ich ✓</button></div>`
+      : `<button class="btn" id="voc-flip" data-voc="flip">Aufdecken</button>`}`;
+}
+document.getElementById("vocRoot").addEventListener("click", e=>{
+  const s = e.target.closest("[data-vset]");
+  if(s){ const [k,val] = s.dataset.vset.split(":"); vocPrefs[k] = val; store.set(k==="dir"?"vocDir":"vocSet", val); return renderVoc(); }
+  const b = e.target.closest("[data-voc]"); if(!b) return;
+  const a = b.dataset.voc;
+  if(a==="start") return vocStart(VERBS.map((_,i)=>i).filter(i => vocPrefs.set==="all" || i>=NEW_FROM));
+  if(a==="again") return vocStart(voc.ids);
+  if(a==="hard") return vocStart([...voc.missed]);
+  if(a==="back"){ voc = null; return renderVoc(); }
+  if(a==="flip"){ voc.flipped = true; return renderVoc(); }
+  if(a==="yes" || a==="no"){
+    const cur = voc.queue.shift();
+    cheer(a==="yes", b);
+    if(a==="no"){ voc.missed.add(cur); voc.queue.splice(Math.min(3, voc.queue.length), 0, cur); }
+    voc.flipped = false; renderVoc();
+  }
+});
+
 /* ---------- shell ---------- */
+const VIEWS = ["learn","rules","quiz","gap","voc"];
 function setView(v){
   state.view = v; store.set("view", v);
-  for(const id of ["learn","rules","quiz","gap"]){
+  for(const id of VIEWS){
     document.getElementById("v-"+id).hidden = id!==v;
     const t = document.getElementById("tab-"+id); if(id===v) t.setAttribute("aria-current","page"); else t.removeAttribute("aria-current");
   }
@@ -696,11 +786,12 @@ function setScript(s){
   renderLearn(); renderRules();
   if(!(quiz && quiz.answered)) renderQuiz();
   if(!gap.answered) renderGap();
+  renderVoc();
 }
 document.querySelectorAll("[data-script]").forEach(b => b.addEventListener("click", ()=>setScript(b.dataset.script)));
 
 setScript(state.script);
-setView(["learn","rules","quiz","gap"].includes(state.view) ? state.view : "learn");
+setView(VIEWS.includes(state.view) ? state.view : "learn");
 </script>
 </body>
 </html>
